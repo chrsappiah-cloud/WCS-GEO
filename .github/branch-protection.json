@@ -1,0 +1,18 @@
+{
+  "required_status_checks": {
+    "strict": true,
+    "contexts": [
+      "Build (iOS Simulator)",
+      "Unit Tests",
+      "Validate investor report assets",
+      "CI Success"
+    ]
+  },
+  "enforce_admins": true,
+  "required_pull_request_reviews": null,
+  "restrictions": null,
+  "allow_force_pushes": false,
+  "allow_deletions": false,
+  "block_creations": false,
+  "required_conversation_resolution": false
+}

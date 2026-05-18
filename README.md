@@ -26,3 +26,16 @@ Cursor and Xcode work should reference section headings from that document. Do n
 ## PDF distribution
 
 Generate read-only PDFs from the Markdown spec (e.g. Pandoc) after major revisions; do not treat PDF as the editable source.
+
+## CI/CD
+
+[![iOS CI](https://github.com/chrsappiah-cloud/WCS-GEO/actions/workflows/ios-ci.yml/badge.svg)](https://github.com/chrsappiah-cloud/WCS-GEO/actions/workflows/ios-ci.yml)
+
+Every push and pull request to `main` / `develop` runs:
+
+- **Build (iOS Simulator)** — Xcode build with Swift Package resolution
+- **Unit Tests** — `WCS-GEOTests`
+- **Validate investor report assets** — images, PDF, marketing, app icon
+- **CI Success** — aggregate gate (required for merge when branch protection is enabled)
+
+Workflow: [`.github/workflows/ios-ci.yml`](.github/workflows/ios-ci.yml)
