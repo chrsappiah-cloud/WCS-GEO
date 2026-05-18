@@ -34,8 +34,11 @@ Generate read-only PDFs from the Markdown spec (e.g. Pandoc) after major revisio
 Every push and pull request to `main` / `develop` runs:
 
 - **Build (iOS Simulator)** — Xcode build with Swift Package resolution
-- **Unit Tests** — `WCS-GEOTests`
+- **Unit Tests** — Swift Testing (`WCS-GEOTests`)
+- **UI Tests** — XCTest gold-theme flows (`WCS-GEOUITests`)
 - **Validate investor report assets** — images, PDF, marketing, app icon
-- **CI Success** — aggregate gate (required for merge when branch protection is enabled)
+- **CI Success** — aggregate gate (required for merge; branch protection enforced)
 
-Workflow: [`.github/workflows/ios-ci.yml`](.github/workflows/ios-ci.yml)
+**CD:** On successful CI on `main`, [`.github/workflows/ios-cd.yml`](.github/workflows/ios-cd.yml) builds a Release simulator `.app` and uploads it as a GitHub Actions artifact (30-day retention).
+
+Workflows: [CI](.github/workflows/ios-ci.yml) · [CD](.github/workflows/ios-cd.yml)

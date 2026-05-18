@@ -62,14 +62,15 @@ jobs:
             -project WCS-GEO.xcodeproj \
             -scheme WCS-GEO
 
-      - name: Run unit tests
+      - name: Run unit tests (Swift Testing)
         run: |
           set -euo pipefail
-          # Pick first available iPhone simulator (GitHub runner images vary)
-          DESTINATION=$(xcodebuild -showdestinations -project WCS-GEO.xcodeproj -scheme WCS-GEO 2>/dev/null \
-            | grep "platform:iOS Simulator" | grep "iPhone" | head -1 \
-            | sed -n 's/.*id:\([^,]*\).*/platform=iOS Simulator,id=\1/p')
-          if [ -z "$DESTINATION" ]; then
+          DEST_LINE=$(xcodebuild -showdestinations -project WCS-GEO.xcodeproj -scheme WCS-GEO 2>/dev/null \
+            | grep "platform:iOS Simulator" | grep "iPhone" | head -1 || true)
+          if [ -n "$DEST_LINE" ]; then
+            SIM_ID=$(echo "$DEST_LINE" | sed -n 's/.*id:\([^,}]*\).*/\1/p')
+            DESTINATION="platform=iOS Simulator,id=${SIM_ID}"
+          else
             DESTINATION='generic/platform=iOS Simulator'
           fi
           echo "Using destination: $DESTINATION"
@@ -79,6 +80,43 @@ jobs:
             -sdk iphonesimulator \
             -destination "$DESTINATION" \
             -only-testing:WCS-GEOTests \
+            CODE_SIGNING_ALLOWED=NO
+
+  ui-tests:
+    name: UI Tests
+    runs-on: macos-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: Resolve Swift packages
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project WCS-GEO.xcodeproj \
+            -scheme WCS-GEO
+
+      - name: Run UI tests (gold theme flows)
+        run: |
+          set -euo pipefail
+          DEST_LINE=$(xcodebuild -showdestinations -project WCS-GEO.xcodeproj -scheme WCS-GEO 2>/dev/null \
+            | grep "platform:iOS Simulator" | grep "iPhone" | head -1 || true)
+          if [ -n "$DEST_LINE" ]; then
+            SIM_ID=$(echo "$DEST_LINE" | sed -n 's/.*id:\([^,}]*\).*/\1/p')
+            DESTINATION="platform=iOS Simulator,id=${SIM_ID}"
+          else
+            DESTINATION='generic/platform=iOS Simulator'
+          fi
+          echo "Using destination: $DESTINATION"
+          xcodebuild test \
+            -project WCS-GEO.xcodeproj \
+            -scheme WCS-GEO \
+            -sdk iphonesimulator \
+            -destination "$DESTINATION" \
+            -only-testing:WCS-GEOUITests \
             CODE_SIGNING_ALLOWED=NO
 
   investor-report:
@@ -112,7 +150,7 @@ jobs:
   ci-success:
     name: CI Success
     runs-on: ubuntu-latest
-    needs: [build, unit-tests, investor-report]
+    needs: [build, unit-tests, ui-tests, investor-report]
     if: always()
     steps:
       - name: Require all jobs passed
@@ -123,6 +161,10 @@ jobs:
           fi
           if [[ "${{ needs.unit-tests.result }}" != "success" ]]; then
             echo "Unit tests failed"
+            exit 1
+          fi
+          if [[ "${{ needs.ui-tests.result }}" != "success" ]]; then
+            echo "UI tests failed"
             exit 1
           fi
           if [[ "${{ needs.investor-report.result }}" != "success" ]]; then

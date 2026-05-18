@@ -4,6 +4,7 @@
     "contexts": [
       "Build (iOS Simulator)",
       "Unit Tests",
+      "UI Tests",
       "Validate investor report assets",
       "CI Success"
     ]
