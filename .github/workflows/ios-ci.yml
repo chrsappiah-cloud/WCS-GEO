@@ -64,11 +64,20 @@ jobs:
 
       - name: Run unit tests
         run: |
+          set -euo pipefail
+          # Pick first available iPhone simulator (GitHub runner images vary)
+          DESTINATION=$(xcodebuild -showdestinations -project WCS-GEO.xcodeproj -scheme WCS-GEO 2>/dev/null \
+            | grep "platform:iOS Simulator" | grep "iPhone" | head -1 \
+            | sed -n 's/.*id:\([^,]*\).*/platform=iOS Simulator,id=\1/p')
+          if [ -z "$DESTINATION" ]; then
+            DESTINATION='generic/platform=iOS Simulator'
+          fi
+          echo "Using destination: $DESTINATION"
           xcodebuild test \
             -project WCS-GEO.xcodeproj \
             -scheme WCS-GEO \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination "$DESTINATION" \
             -only-testing:WCS-GEOTests \
             CODE_SIGNING_ALLOWED=NO
 
