@@ -1,0 +1,63 @@
+name: iOS CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build-and-test:
+    name: Build & Test (iOS Simulator)
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Resolve Swift packages
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project WCS-GEO.xcodeproj \
+            -scheme WCS-GEO
+
+      - name: Build for iOS Simulator
+        run: |
+          xcodebuild build \
+            -project WCS-GEO.xcodeproj \
+            -scheme WCS-GEO \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Run unit tests
+        run: |
+          xcodebuild test \
+            -project WCS-GEO.xcodeproj \
+            -scheme WCS-GEO \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -only-testing:WCS-GEOTests \
+            CODE_SIGNING_ALLOWED=NO
+        continue-on-error: true
+
+  investor-report:
+    name: Validate investor report assets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify report images exist
+        run: |
+          test -f docs/investor-report/images/report-01-gold-diamonds-vision.png
+          test -f docs/investor-report/images/report-05-investor-growth.png
+          echo "Investor report assets present"

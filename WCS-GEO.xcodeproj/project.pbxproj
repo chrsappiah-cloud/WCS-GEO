@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		5E7EEC462FBAA57E00D6ED91 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = A10000022FBAA27000D6ED91 /* Supabase */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		5E7EEC072FBAA27000D6ED91 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -65,6 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5E7EEC462FBAA57E00D6ED91 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,6 +130,7 @@
 			);
 			name = "WCS-GEO";
 			packageProductDependencies = (
+				A10000022FBAA27000D6ED91 /* Supabase */,
 			);
 			productName = "WCS-GEO";
 			productReference = 5E7EEBF52FBAA26E00D6ED91 /* WCS-GEO.app */;
@@ -208,6 +214,9 @@
 			);
 			mainGroup = 5E7EEBEC2FBAA26E00D6ED91;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A10000012FBAA27000D6ED91 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5E7EEBF62FBAA26E00D6ED91 /* Products */;
 			projectDirPath = "";
@@ -595,6 +604,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A10000012FBAA27000D6ED91 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A10000022FBAA27000D6ED91 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000012FBAA27000D6ED91 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5E7EEBED2FBAA26E00D6ED91 /* Project object */;
 }
