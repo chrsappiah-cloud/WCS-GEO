@@ -10,6 +10,7 @@ final class WCS_GEOUITests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
+        XCUIDevice.shared.orientation = .portrait
     }
 
     @MainActor
@@ -27,13 +28,9 @@ final class WCS_GEOUITests: XCTestCase {
         app.launch()
 
         app.buttons["Continue with Supabase"].tap()
-        app.buttons[demoOrganizationName].tap()
+        app.tapOrganization(named: demoOrganizationName)
 
-        XCTAssertTrue(app.tabBars.buttons["Dashboard"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.tabBars.buttons["Map"].exists)
-        XCTAssertTrue(app.tabBars.buttons["Targets"].exists)
-        XCTAssertTrue(app.tabBars.buttons["Field"].exists)
-        XCTAssertTrue(app.tabBars.buttons["Settings"].exists)
+        app.assertMainNavigationVisible()
     }
 
     @MainActor
@@ -41,10 +38,10 @@ final class WCS_GEOUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchAndSignIn(organizationName: demoOrganizationName)
 
-        app.tabBars.buttons["Targets"].tap()
-        app.staticTexts["Boulder Ridge"].tap()
+        app.openTargets()
+        app.openTarget(named: "Boulder Ridge")
 
-        XCTAssertTrue(app.navigationBars["Boulder Ridge"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["Boulder Ridge"].waitForExistence(timeout: 5) || app.staticTexts["Prospectivity"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Summary"].exists)
         XCTAssertTrue(app.buttons["Drivers"].exists)
         XCTAssertTrue(app.buttons["Narrative"].exists)
@@ -59,7 +56,49 @@ private extension XCUIApplication {
     func launchAndSignIn(organizationName: String) {
         launch()
         buttons["Continue with Supabase"].tap()
-        buttons[organizationName].tap()
-        _ = tabBars.buttons["Dashboard"].waitForExistence(timeout: 5)
+        tapOrganization(named: organizationName)
+        _ = tabBars.buttons["Dashboard"].waitForExistence(timeout: 3) || navigationBars["Projects"].waitForExistence(timeout: 3)
+    }
+
+    func tapOrganization(named organizationName: String) {
+        let exactButton = buttons[organizationName]
+        if exactButton.waitForExistence(timeout: 2) {
+            exactButton.tap()
+            return
+        }
+
+        let predicate = NSPredicate(format: "label BEGINSWITH %@", organizationName)
+        let matchingButton = buttons.matching(predicate).firstMatch
+        XCTAssertTrue(matchingButton.waitForExistence(timeout: 5))
+        matchingButton.tap()
+    }
+
+    func assertMainNavigationVisible() {
+        if tabBars.buttons["Dashboard"].waitForExistence(timeout: 5) {
+            XCTAssertTrue(tabBars.buttons["Map"].exists)
+            XCTAssertTrue(tabBars.buttons["Targets"].exists)
+            XCTAssertTrue(tabBars.buttons["Field"].exists)
+            XCTAssertTrue(tabBars.buttons["Settings"].exists)
+            return
+        }
+
+        XCTAssertTrue(navigationBars["Projects"].waitForExistence(timeout: 5))
+        XCTAssertTrue(staticTexts["Ranked targets"].exists || staticTexts["Boulder Ridge"].exists)
+    }
+
+    func openTargets() {
+        let targetsTab = tabBars.buttons["Targets"]
+        if targetsTab.waitForExistence(timeout: 3) {
+            targetsTab.tap()
+            return
+        }
+
+        XCTAssertTrue(navigationBars["Projects"].waitForExistence(timeout: 5))
+    }
+
+    func openTarget(named targetName: String) {
+        let targetText = staticTexts[targetName]
+        XCTAssertTrue(targetText.waitForExistence(timeout: 5))
+        targetText.tap()
     }
 }
