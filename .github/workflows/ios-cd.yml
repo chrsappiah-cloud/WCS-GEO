@@ -1,0 +1,61 @@
+name: iOS CD
+
+on:
+  workflow_run:
+    workflows: [iOS CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-artifact:
+    name: Build release artifact (main)
+    runs-on: macos-latest
+    if: >
+      github.event.workflow_run.conclusion == 'success' ||
+      github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: Resolve Swift packages
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project WCS-GEO.xcodeproj \
+            -scheme WCS-GEO
+
+      - name: Build release for simulator
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project WCS-GEO.xcodeproj \
+            -scheme WCS-GEO \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -configuration Release \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Stage and upload .app bundle
+        run: |
+          set -euo pipefail
+          APP_PATH=$(find "$HOME/Library/Developer/Xcode/DerivedData" -path '*Release-iphonesimulator/WCS-GEO.app' -type d 2>/dev/null | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Release .app not found"
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/staging"
+          ditto "$APP_PATH" "$RUNNER_TEMP/staging/WCS-GEO.app"
+          echo "Staged $APP_PATH"
+
+      - name: Upload simulator release
+        uses: actions/upload-artifact@v4
+        with:
+          name: WCS-GEO-simulator-release
+          path: ${{ runner.temp }}/staging/WCS-GEO.app
+          retention-days: 30
